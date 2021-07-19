@@ -18,6 +18,7 @@ public class CreateProductRequest {
     @Size(min=1, max = 100)
     @Pattern(regexp = "^[a-zA-Z0-9 _.'-]*$")
     private String name;
+
     @NotNull
     private BigDecimal price;
     @NotNull

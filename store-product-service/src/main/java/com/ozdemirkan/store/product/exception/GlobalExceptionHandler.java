@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import javax.validation.ConstraintViolationException;
 
 
 @ControllerAdvice
@@ -18,10 +19,18 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
-    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
-        log.error("Exception occured.", ex);
-        return new ResponseEntity<>( HttpStatus.BAD_REQUEST);
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException exception, HttpHeaders headers, HttpStatus status, WebRequest request) {
+        return processBadRequest(exception);
+    }
 
+    @ExceptionHandler({ConstraintViolationException.class})
+    public ResponseEntity<Object> handleExceptions(ConstraintViolationException exception, WebRequest webRequest) {
+        return processBadRequest(exception);
+    }
+
+    private ResponseEntity<Object> processBadRequest(Exception exception ) {
+        log.error("Exception occured.", exception);
+        return new ResponseEntity<>( HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(BusinessException.class)
