@@ -1,9 +1,9 @@
-package com.ozdemirkan.store.product;
+package com.ozdemirkan.store.order;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ProductApplicationTests {
+class OrderApplicationTests {
 
     @Test
     void contextLoads() {
