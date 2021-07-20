@@ -16,7 +16,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -118,7 +117,7 @@ class ProductControllerTest {
 
         mvc.perform(
                 get(API_PRODUCT+"?name=iPad"))
-                .andExpect(jsonPath("$.data", hasSize(3)))
+                .andExpect(jsonPath("$.data.totalElements").value(3))
                 .andExpect(status().isOk());
     }
 
@@ -127,7 +126,7 @@ class ProductControllerTest {
 
         mvc.perform(
                 get(API_PRODUCT+"?name=FlyingCar"))
-                .andExpect(jsonPath("$.data", hasSize(0)))
+                .andExpect(jsonPath("$.data.totalElements").value(0))
                 .andExpect(status().isOk());
     }
 

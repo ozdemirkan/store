@@ -12,6 +12,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 
 import java.math.BigDecimal;
@@ -56,7 +58,8 @@ class ProductServiceTest {
         //given
         CreateProductRequest createProductRequest = new CreateProductRequest("iPhone 12", BigDecimal.valueOf(700.00), Currency.EUR);
         //when
-        when(productRepository.findByName(createProductRequest.getName())).thenReturn(Optional.of(Product.createInstance("Iphone 12", BigDecimal.valueOf(700.00), Currency.EUR)));
+        when(productRepository.findByName(createProductRequest.getName()))
+                .thenReturn(Optional.of(Product.builder().name("Iphone 12").price(BigDecimal.valueOf(700.00)).currency(Currency.EUR).build()));
         //then
         BusinessException exception = assertThrows(BusinessException.class, () -> productService.createProduct(createProductRequest));
         assertEquals(HttpStatus.UNPROCESSABLE_ENTITY, exception.getErrorType().getHttpStatus());
@@ -70,18 +73,17 @@ class ProductServiceTest {
     void findAllProductsByNameSuccess() {
         //given
         List<Product> products = List.of(
-                Product.createInstance("Iphone 12 Mini", BigDecimal.valueOf(700.00), Currency.EUR),
-                Product.createInstance("Iphone 12",BigDecimal.valueOf(700.00), Currency.EUR),
-                Product.createInstance("Iphone 12 Ultra",BigDecimal.valueOf(700.00), Currency.EUR),
-                Product.createInstance("Iphone 12 Ultra Max", BigDecimal.valueOf(700.00), Currency.EUR)
+                Product.builder().name("Iphone 12 Mini").price(BigDecimal.valueOf(700.00)).currency(Currency.EUR).build(),
+                Product.builder().name("Iphone 12").price(BigDecimal.valueOf(800.00)).currency(Currency.EUR).build(),
+                Product.builder().name("Iphone 12 Ultra").price(BigDecimal.valueOf(900.00)).currency(Currency.EUR).build(),
+                Product.builder().name("Iphone 12 Ultra Max").price(BigDecimal.valueOf(1000.00)).currency(Currency.EUR).build()
         );
         String productToBeSearched = "Iphone 12";
 
         //when
-        when(productRepository.findAllByName(productToBeSearched)).thenReturn(Optional.of(products));
+        when(productRepository.findByNameContainingIgnoreCase(productToBeSearched, PageRequest.of(0, 20))).thenReturn(new PageImpl(products));
         //then
-        assertEquals(productService.findAllProductsByName(productToBeSearched), Optional.of(products));
-        verify(productRepository).findAllByName(productToBeSearched);
+        assertEquals(products.size(), productService.findAllProductsByName(productToBeSearched, PageRequest.of(0, 20)).getTotalElements());
 
     }
 
@@ -91,7 +93,7 @@ class ProductServiceTest {
         //given
         UpdateProductRequest updateProductRequest = new UpdateProductRequest(BigDecimal.valueOf(710.00), Currency.EUR);
         String updatedProductId = UUID.randomUUID().toString();
-        Product updatedProduct = Product.createInstance("Iphone 12 Mini", BigDecimal.valueOf(700.00), Currency.EUR);
+        Product updatedProduct = Product.builder().name("Iphone 12 Mini").price(BigDecimal.valueOf(700.00)).currency(Currency.EUR).build();
         //when
         when(productRepository.findById(updatedProductId)).thenReturn(Optional.of(updatedProduct));
         //then
@@ -100,7 +102,7 @@ class ProductServiceTest {
     }
 
     @Test
-    void updateUnexistingProductFails() throws BusinessException {
+    void updateNonExistingProductFails() throws BusinessException {
         //given
         UpdateProductRequest updateProductRequest = new UpdateProductRequest(BigDecimal.valueOf(710.00), Currency.EUR);
         String updatedProductId = UUID.randomUUID().toString();
