@@ -4,6 +4,7 @@ import com.ozdemirkan.store.product.entity.Product;
 import com.ozdemirkan.store.product.exception.BusinessException;
 import com.ozdemirkan.store.product.exception.ErrorType;
 import com.ozdemirkan.store.product.model.CreateProductRequest;
+import com.ozdemirkan.store.product.model.GetProductDetailsResponse;
 import com.ozdemirkan.store.product.model.UpdateProductRequest;
 import com.ozdemirkan.store.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +39,17 @@ public class ProductService {
             return productRepository.findAll(pageable);
         }
         return productRepository.findByNameContainingIgnoreCase(name, pageable);
+    }
+
+    public List<Product> findAllProductsByIds(List<String> ids) {
+            return (List<Product>) productRepository.findAllById(ids);
+    }
+
+    public List<GetProductDetailsResponse.ProductDetail> getProductDetails (List<String> ids) {
+        List<Product> products = (List<Product>) productRepository.findAllById(ids);
+        return products.stream()
+                .map(product -> new GetProductDetailsResponse.ProductDetail(product.getId(), product.getPrice(), product.getCurrency()))
+                .collect(Collectors.toList());
     }
 
     @Transactional

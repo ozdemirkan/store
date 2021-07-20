@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ozdemirkan.store.product.exception.BusinessException;
 import com.ozdemirkan.store.product.model.CreateProductRequest;
 import com.ozdemirkan.store.product.model.Currency;
+import com.ozdemirkan.store.product.model.GetProductDetailsRequest;
 import com.ozdemirkan.store.product.model.UpdateProductRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,8 +15,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -25,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class ProductControllerTest {
     public static final String API_PRODUCT = "/api/product";
+    public static final String API_PRODUCT_DETAILS = "/api/product/details";
     @Autowired
     private MockMvc mvc;
     @Autowired
@@ -183,6 +187,36 @@ class ProductControllerTest {
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
+    }
+
+    //GET PRODUCT DETAILS//
+    @Test
+    void getProductDetailsSuccess() throws BusinessException, Exception {
+
+        String firstProductLocation = (String) mvc.perform(
+                post(API_PRODUCT)
+                        .content(mapper.writeValueAsString(new CreateProductRequest("MacBook Air", BigDecimal.valueOf(900.00), Currency.EUR)))
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getHeaderValue(HttpHeaders.LOCATION);
+
+        String secondProductLocation = (String) mvc.perform(
+                post(API_PRODUCT)
+                        .content(mapper.writeValueAsString(new CreateProductRequest("MacBook Pro", BigDecimal.valueOf(700.00), Currency.EUR)))
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getHeaderValue(HttpHeaders.LOCATION);
+
+
+        mvc.perform(
+                post(API_PRODUCT_DETAILS)
+                        .content(mapper.writeValueAsString(new GetProductDetailsRequest(
+                                List.of(
+                                        firstProductLocation.substring(firstProductLocation.lastIndexOf("/") + 1),
+                                        secondProductLocation.substring(secondProductLocation.lastIndexOf("/")+ 1)))))
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.data.productDetails", hasSize(2)))
+                .andExpect(status().isOk());
     }
 
 }

@@ -37,7 +37,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleExceptions(BusinessException exception, WebRequest webRequest) {
         log.error("Exception occured.", exception);
 
-        GenericResponse<Void> response = new GenericResponse<>(exception.getErrorType().getCode(),exception.getErrorType().name());
+        GenericResponse<Void> response = new GenericResponse<>(exception.getErrorType().name(),exception.getErrorType().getCode());
 
         HttpStatus status = null;
         ErrorType errorType = exception.getErrorType();

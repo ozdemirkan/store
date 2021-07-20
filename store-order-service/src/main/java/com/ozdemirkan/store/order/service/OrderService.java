@@ -1,11 +1,13 @@
 package com.ozdemirkan.store.order.service;
 
+import com.ozdemirkan.store.order.client.ProductServiceClient;
+import com.ozdemirkan.store.order.client.model.GetProductDetailsResponse;
 import com.ozdemirkan.store.order.entity.Order;
 import com.ozdemirkan.store.order.entity.OrderProduct;
 import com.ozdemirkan.store.order.exception.BusinessException;
+import com.ozdemirkan.store.order.exception.ErrorType;
 import com.ozdemirkan.store.order.model.CreateOrderRequest;
 import com.ozdemirkan.store.order.model.Currency;
-import com.ozdemirkan.store.order.repository.OrderProductRepository;
 import com.ozdemirkan.store.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -14,34 +16,62 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class OrderService {
     private final OrderRepository orderRepository;
-    private final OrderProductRepository orderProductRepository;
+    private final  ProductServiceClient productServiceClient;
 
     @Transactional
     public Order createOrder(CreateOrderRequest request) throws BusinessException {
 
-        Order newOrder = Order.builder()
-                .email(request.getEmail())
-                //TODO : calculate total price
-                .totalPrice(BigDecimal.valueOf(0.00))
-                .currency(Currency.EUR)
-                .build();
+        //Retrieve price information for the ordered products
+        GetProductDetailsResponse productDetails = getProductDetails(request);
 
-        Order savedOrder = orderRepository.saveAndFlush(newOrder);
+        //Prepare id-price map to be used during total price calculation
+        Map<String, BigDecimal> productPriceMap = retrieveProductPriceMap(productDetails);
 
-        request.getProducts()
-                .forEach(product -> orderProductRepository.save(
+        //Save order
+        List<OrderProduct> orderProducts= request.getProducts()
+                .stream()
+                .map(product ->
                         OrderProduct.builder()
-                                .orderId(savedOrder.getId())
                                 .productId(product.getId())
+                                .price(productPriceMap.get(product.getId()))
+                                .currency(Currency.EUR)
                                 .count(product.getCount())
-                                .build()));
+                                .build())
+                .collect(Collectors.toList());
 
-        return newOrder;
+
+        Order order = Order.buildOrder(request.getEmail(), orderProducts, productPriceMap);
+
+        orderRepository.save(order);
+
+        return order;
+    }
+
+    private Map<String, BigDecimal> retrieveProductPriceMap(GetProductDetailsResponse productDetails) {
+        return productDetails.getProductDetails().stream()
+                .collect(Collectors.toMap(GetProductDetailsResponse.ProductDetail::getId, GetProductDetailsResponse.ProductDetail::getPrice));
+    }
+
+    private GetProductDetailsResponse getProductDetails(CreateOrderRequest request) throws BusinessException {
+        GetProductDetailsResponse productDetails = productServiceClient.getProductDetails(request.getProducts().stream().map(CreateOrderRequest.Product::getId).collect(Collectors.toList()));
+        //If there is a missing product price information, reject request
+        if(productDetails.getProductDetails().size()!= request.getProducts().size()){
+            throw new BusinessException(ErrorType.NON_EXISTING_PRODUCT);
+        }
+
+        if(productDetails.getProductDetails().stream().anyMatch(productDetail -> productDetail.getCurrency()!= GetProductDetailsResponse.Currency.EUR)){
+            throw new BusinessException(ErrorType.UNSUPPORTED_CURRENCY);
+        }
+
+        return productDetails;
     }
 
     public Page<Order> findAllOrdersByEmail(String email, Pageable pageable) {

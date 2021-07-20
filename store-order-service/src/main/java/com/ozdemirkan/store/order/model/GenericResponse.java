@@ -3,10 +3,12 @@ package com.ozdemirkan.store.order.model;
 import lombok.*;
 
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class GenericResponse<T> {
-    private final T data;
-    private final String errorCode;
-    private final String errorDescription;
+    private T data;
+    private String errorCode;
+    private String errorDescription;
     public GenericResponse(T data){
         this.data = data;
         this.errorCode=null;
