@@ -4,6 +4,7 @@ import com.ozdemirkan.store.product.entity.Product;
 import com.ozdemirkan.store.product.exception.BusinessException;
 import com.ozdemirkan.store.product.exception.ErrorType;
 import com.ozdemirkan.store.product.model.CreateProductRequest;
+import com.ozdemirkan.store.product.model.UpdateProductRequest;
 import com.ozdemirkan.store.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -30,5 +31,15 @@ public class ProductService {
 
     public Optional<List<Product>> findAllProductsByName(String name) {
         return productRepository.findAllByName(name);
+    }
+
+    public void updateProduct(String id, UpdateProductRequest updateProductRequest) throws BusinessException {
+        Optional<Product> optionalProduct = productRepository.findById(id);
+        if (optionalProduct.isEmpty()) {
+            throw new BusinessException(ErrorType.NOT_FOUND);
+        }
+        Product product = optionalProduct.get();
+        product.setPrice(updateProductRequest.getPrice());
+        product.setCurrency(updateProductRequest.getCurrency());
     }
 }

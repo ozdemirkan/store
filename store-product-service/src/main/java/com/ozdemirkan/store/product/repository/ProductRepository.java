@@ -19,6 +19,10 @@ public class ProductRepository {
                 .map(Map.Entry::getValue);
     }
 
+    public Optional<Product> findById(String id){
+        return Optional.ofNullable(productList.get(id));
+    }
+
     public void save(Product product){
         productList.put(product.getId(),product);
     }

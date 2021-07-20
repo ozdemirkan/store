@@ -4,6 +4,7 @@ import com.ozdemirkan.store.product.entity.Product;
 import com.ozdemirkan.store.product.exception.BusinessException;
 import com.ozdemirkan.store.product.model.CreateProductRequest;
 import com.ozdemirkan.store.product.model.Currency;
+import com.ozdemirkan.store.product.model.UpdateProductRequest;
 import com.ozdemirkan.store.product.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -36,7 +38,7 @@ class ProductServiceTest {
     public void init() {
     }
 
-
+    //CREATE PRODUCT//
     @Test
     void createProductSuccess() throws BusinessException {
         //given
@@ -63,6 +65,7 @@ class ProductServiceTest {
         verifyNoMoreInteractions(productRepository);
     }
 
+    //FIND PRODUCT//
     @Test
     void findAllProductsByNameSuccess() {
         //given
@@ -80,5 +83,34 @@ class ProductServiceTest {
         assertEquals(productService.findAllProductsByName(productToBeSearched), Optional.of(products));
         verify(productRepository).findAllByName(productToBeSearched);
 
+    }
+
+    //UPDATE PRODUCT//
+    @Test
+    void updateProductSuccess() throws BusinessException {
+        //given
+        UpdateProductRequest updateProductRequest = new UpdateProductRequest(BigDecimal.valueOf(710.00), Currency.EUR);
+        String updatedProductId = UUID.randomUUID().toString();
+        Product updatedProduct = Product.createInstance("Iphone 12 Mini", BigDecimal.valueOf(700.00), Currency.EUR);
+        //when
+        when(productRepository.findById(updatedProductId)).thenReturn(Optional.of(updatedProduct));
+        //then
+        productService.updateProduct(updatedProductId,updateProductRequest);
+        assertEquals(updatedProduct.getPrice(), updateProductRequest.getPrice());
+    }
+
+    @Test
+    void updateUnexistingProductFails() throws BusinessException {
+        //given
+        UpdateProductRequest updateProductRequest = new UpdateProductRequest(BigDecimal.valueOf(710.00), Currency.EUR);
+        String updatedProductId = UUID.randomUUID().toString();
+        //when
+        when(productRepository.findById(updatedProductId)).thenReturn(Optional.empty());
+        //then
+        BusinessException exception = assertThrows(BusinessException.class, () -> productService.updateProduct(updatedProductId,updateProductRequest));
+        assertEquals(HttpStatus.NOT_FOUND, exception.getErrorType().getHttpStatus());
+
+        verify(productRepository).findById(updatedProductId);
+        verifyNoMoreInteractions(productRepository);
     }
 }

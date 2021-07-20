@@ -4,6 +4,7 @@ import com.ozdemirkan.store.product.entity.Product;
 import com.ozdemirkan.store.product.exception.BusinessException;
 import com.ozdemirkan.store.product.model.CreateProductRequest;
 import com.ozdemirkan.store.product.model.GenericResponse;
+import com.ozdemirkan.store.product.model.UpdateProductRequest;
 import com.ozdemirkan.store.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -25,6 +26,8 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private static final String UUID_REGEX = "([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})";
+
 
     @PostMapping("/product")
     public ResponseEntity<Void> createProduct(@RequestBody @Valid CreateProductRequest request,
@@ -39,5 +42,10 @@ public class ProductController {
     public ResponseEntity<GenericResponse<List<Product>>> getProducts(@RequestParam(required = false) @Valid @Size(min=1, max = 100)  @Pattern(regexp = "^[a-zA-Z0-9 _.'-]*$") String name){
         return ResponseEntity.ok(new GenericResponse<>(productService.findAllProductsByName(name).orElse(List.of())));
     }
-
+    @PatchMapping("/product/{id}")
+    public ResponseEntity<GenericResponse<Void>> updateProduct(@PathVariable @Pattern(regexp = UUID_REGEX) String id,
+                                                               @RequestBody(required = false) @Valid UpdateProductRequest updateProductRequest) throws BusinessException {
+        productService.updateProduct(id, updateProductRequest);
+        return ResponseEntity.ok(new GenericResponse<>(null));
+    }
 }
