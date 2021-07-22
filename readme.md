@@ -1,11 +1,11 @@
 # STORE APPLICATION
 
 Store app is a parent project which contains;
-* An api-gateway using [Spring Cloud Gateway](https://github.com/spring-cloud/spring-cloud-gateway).
+* An api-gateway that is developed using [Spring Cloud Gateway](https://github.com/spring-cloud/spring-cloud-gateway).
   * store-gateway-service
-* Two microservices developed using [Spring Boot](https://github.com/spring-projects/spring-boot).
-    * store-product-service
-    * store-order-service
+* Two microservices that are developed using [Spring Boot](https://github.com/spring-projects/spring-boot).
+  * store-product-service
+  * store-order-service
 
 ## store-gateway-service
 
@@ -67,3 +67,24 @@ Api documentation can be accessed at: http://localhost:8082/swagger-ui/
 * In-memory db --H2-- is used. It initializes the data during startup.
 * The h2 console is available at `http://localhost:8082/h2-console`
 * Db can be accessed at `jdbc:h2:mem:testdb`.
+
+
+## Start the apps with Docker Compose
+
+To create the application images, following command should be run;
+
+```
+git clone https://github.com/ozdemirkan/store.git
+cd store/
+./mvnw clean package -Ddocker.skip=false
+```
+
+To create containers for all apps, following command should be run;
+
+```
+docker compose up
+```
+
+Note that one should wait until all services are up and running. Then, APIs are ready to be tested
+
+Attached [postman collection](https://raw.githubusercontent.com/ozdemirkan/store/main/Store.postman_collection.json) contains sample API calls.
