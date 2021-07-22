@@ -23,6 +23,7 @@
     <modules>
         <module>store-product-service</module>
         <module>store-order-service</module>
+        <module>store-gateway-service</module>
     </modules>
 
     <dependencyManagement>

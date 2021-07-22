@@ -1,11 +1,27 @@
 # STORE APPLICATION
 
 Store app is a parent project which contains;
-* An api-gateway using [Spring Cloud Gateway](https://https://github.com/spring-cloud/spring-cloud-gateway).
+* An api-gateway using [Spring Cloud Gateway](https://github.com/spring-cloud/spring-cloud-gateway).
   * store-gateway-service
 * Two microservices developed using [Spring Boot](https://github.com/spring-projects/spring-boot).
     * store-product-service
     * store-order-service
+
+## store-gateway-service
+
+### Running the app at local environment
+store-gateway-service is a Spring Cloud Gateway app built with maven.  
+The gateway can be built to produce a jar file. Jar file can be run as given below;
+
+```
+git clone https://github.com/ozdemirkan/store.git
+cd store/
+./mvnw package
+java -jar store-gateway-service/target/store-gateway-service.jar
+```
+
+App can be accessed at: http://localhost:8080/
+
 
 ## store-product-service 
 
@@ -21,6 +37,7 @@ java -jar store-product-service/target/store-product-service.jar
 ```
 
 App can be accessed at: http://localhost:8081/
+Api documentation can be accessed at: http://localhost:8081/swagger-ui/
 
 ### DB Config
 
@@ -43,6 +60,7 @@ java -jar store-order-service/target/store-order-service.jar
 ```
 
 App can be accessed at: http://localhost:8082/
+Api documentation can be accessed at: http://localhost:8082/swagger-ui/
 
 ### DB Config
 

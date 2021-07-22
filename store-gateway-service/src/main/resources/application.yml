@@ -1,0 +1,17 @@
+server:
+  port: 8080
+spring:
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: false
+    gateway:
+      routes:
+        - id: product
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/product/**
+        - id: order
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/order/**

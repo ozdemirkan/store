@@ -50,25 +50,5 @@
     </dependencies>
     <build>
         <finalName>store-gateway-service</finalName>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <version>2.22.0</version>
-                <configuration>
-                    <argLine>
-                        --illegal-access=permit
-                    </argLine>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>dockerfile-maven-plugin</artifactId>
-                <configuration>
-                    <skip>${docker.skip}</skip>
-                </configuration>
-            </plugin>
-
-        </plugins>
     </build>
 </project>
